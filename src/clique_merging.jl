@@ -267,7 +267,7 @@ function traverse(t::SuperNodeTree, strategy::CliqueGraphMerge)
   # mark_positive_permissible_edges!(strategy.permissible, strategy.adjacency_table, strategy.inter, strategy.weights, t.sep)
   # N.B. use InsertionSort because it performs well if the list is almost sorted, which is highly likely in this case
   p = strategy.p
-  sortperm!(p, strategy.weights, alg = InsertionSort, rev = true)
+  sortperm!(p, strategy.weights, rev = true)
 
   for k = 1:length(p)
     edge = strategy.edges[p[k]]

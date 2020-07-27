@@ -57,7 +57,8 @@ function separator_graph(clique_ind::Array{Int64,1}, separator::Set{Int64}, snd:
     for pair in subsets(clique_ind, Val{2}())
         ca = pair[1]
         cb = pair[2]
-        if intersect_dim(snd[ca], snd[cb]) > length(separator)
+        if !isfullsubset(snd[ca], snd[cb], length(separator))
+        # if intersect_dim(snd[ca], snd[cb]) > length(separator)
             if haskey(H, ca)
                 push!(H[ca], cb)
             else
@@ -145,6 +146,18 @@ function ispermissible(edge::Tuple{Int64, Int64}, adjacency_table::Dict{Int64, S
     # N.B. This can be made faster by first checking whether the sizes of the intersection are the same before allocating anything
     for neighbor in common_neighbors
         intersect(snd[c_1], snd[neighbor]) != intersect(snd[c_2], snd[neighbor]) && return false
+    end
+    return true
+end
+
+"Check if ca ∩ cb ⊊ S (full subset with equality)."
+function isfullsubset(ca::Set, cb::Set, Ns::Int64)
+    dim = 0
+    for elem in ca
+        if elem in cb
+            dim += 1
+            dim > Ns && return false
+        end
     end
     return true
 end

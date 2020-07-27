@@ -179,7 +179,6 @@ ProblemData(args...) = ProblemData{DefaultFloat}(args...)
 # ---------------------------
 # Struct to hold clique and sparsity data for a constraint
 # ---------------------------
-
 mutable struct SparsityPattern
   sntree::SuperNodeTree
   ordering::Array{Int64}
@@ -193,7 +192,6 @@ mutable struct SparsityPattern
 
     merge_strategy = merge_strategy()
     sntree = SuperNodeTree(L, merge_strategy)
-
     # clique merging
     sntree.num > 1 && merge_cliques!(sntree)
 
