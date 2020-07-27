@@ -78,7 +78,7 @@ mutable struct SuperNodeTree
 		#sort_children!(child, post)
 		# faster algorithm according to Vandenberghe p.308
 		degrees = higher_degrees(L)
-		snd, snd_par = find_supernodes(par, post, degrees)
+		snd, snd_par = find_supernodes(par, post, degrees, merge_strategy)
 
 		snd_child = child_from_par(snd_par)
 	 	snd_post = post_order(snd_par, snd_child)
@@ -95,7 +95,7 @@ mutable struct SuperNodeTree
 	 	# If the merge strategy is tree based keep the supernodes and separators in to different locations
 		else
 	 		# given the supernodes (clique residuals) find the clique separators
-			sep = find_separators(L, snd, snd_par, post)
+			sep = find_separators(L, snd, snd_par, post, merge_strategy)
 			new(snd, snd_par, snd_post, snd_child, post, par, sep, [0], length(snd_post), MergeLog(), merge_strategy)
 
 		end
@@ -202,7 +202,7 @@ post_order(par::Array{Int64,1}, child::Union{Array{Array{Int64, 1}, 1}, Array{Se
 
 function child_from_par(par::Array{Int64,1})
 
-	child = [Array{Int64}(undef, 0) for i = 1:length(par)]
+	child = [Set{Int64}() for i = 1:length(par)]
 	for i = 1:length(par)
 		par_ = par[i]
 		par_ != 0 && push!(child[par_], i)
@@ -463,14 +463,22 @@ function pothen_sun(par::Array{Int64,1}, post::Array{Int64,1}, degrees::Array{In
 	return sn_par, sn_ind
 end
 
-function find_supernodes(par::Array{Int64,1}, post::Array{Int64,1}, degrees::Array{Int64,1})
+function initialise_sets(N::Int64, strategy::AbstractGraphBasedMerge)
+	return [Set{Int64}() for i = 1:N]
+end
+
+function initialise_sets(N::Int64, strategy::AbstractMergeStrategy)
+	return [Int64[] for i = 1:N]
+end
+
+function find_supernodes(par::Array{Int64,1}, post::Array{Int64,1}, degrees::Array{Int64,1}, strategy::AbstractMergeStrategy)
 	supernode_par, snInd = pothen_sun(par, post, degrees)
 	# number of vertices
 	N = length(par)
 	# number of representative vertices == number of supernodes
 	Nrep = length(supernode_par)
-	snode = [Set{Int64}() for i = 1:N]
-
+	# snode = [Set{Int64}() for i = 1:N]
+	snode = initialise_sets(N, strategy)
 	for iii = 1:N
 		f = snInd[iii]
 		if f < 0
@@ -484,11 +492,11 @@ function find_supernodes(par::Array{Int64,1}, post::Array{Int64,1}, degrees::Arr
 
 end
 
-function find_separators(L, snodes::Array{Set{Int64},1}, supernode_par::Array{Int64,1}, post::Array{Int64,1})
+function find_separators(L, snodes::Union{Array{Set{Int64}, 1}, Array{Array{Int64, 1},1}}, supernode_par::Array{Int64,1}, post::Array{Int64,1}, strategy::AbstractMergeStrategy)
 	postInv = invert_order(post)
 
 	Nc = length(supernode_par)
-	sep = [Set{Int64}() for i = 1:Nc]
+	sep = initialise_sets(Nc, strategy)
 
 	for iii = 1:Nc
 		vRep = snodes[iii][1]

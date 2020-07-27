@@ -553,7 +553,7 @@ function kruskal!(edges::Array{Tuple{Int64, Int64}}, p::Array{Int64, 1}, weights
   # iterate through edges (I -- J) with decreasing weight
   for k in p
     edge = edges[k]
-    @show(k, edge, weights[k])
+    # @show(k, edge, weights[k])
     weights[k] == -Inf && error("Invalid edge used in kruskal's algorithm.")
     # row = I[k]
     # col = J[k]
@@ -646,6 +646,7 @@ function clique_tree_from_graph!(t::SuperNodeTree)
   # recompute a postorder for the supernodes
   t.snd_post = post_order(t.snd_par, t.snd_child, t.num)
 
+  t.sep = [Set{Int64}() for i = 1:length(t.snd)]
   # split clique sets back into seperators and supernodes
   split_cliques!(t.snd, t.sep, t.snd_par, t.snd_post, t.num)
   t.strategy.clique_tree_recomputed = true
